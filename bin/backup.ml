@@ -19,7 +19,7 @@ module Config = struct
   let create =
     {
       api = "https://www.notion.so/api/v3";
-      export_filename = "notion_backup.zip";
+      export_filename = "../notion_backup.zip";
       token_v2 = Sys.getenv "NOTION_TOKEN_V2";
       space_id = Sys.getenv "NOTION_SPACE_ID";
     }

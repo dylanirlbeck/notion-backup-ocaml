@@ -1,3 +1,4 @@
 (executable
+  (public_name notion-backup-ocaml)
   (name   backup)
   (libraries lwt cohttp-lwt-unix yojson))
