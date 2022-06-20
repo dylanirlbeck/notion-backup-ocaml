@@ -4,6 +4,10 @@ A small OCaml program to automate the backup of your entire Notion workspace. In
 
 This project satisfies two goals: (1) automate the backup of my Notion workspace, where my digital presence largely lives and (2) play around with my favorite programming language, OCaml.
 
+## Building and installing
+
+Execute with `dune exec notion-backup-ocaml`, build with `dune build`.
+
 ## Using `launchd` to schedule this backup once a day
 
 Using `launchd`, a built-in MacOS utility with Cron-like functionality, I've set
