@@ -5,8 +5,6 @@ open Yojson.Basic.Util
 
 (* Notion API configuration: API url, export filename, Notion token v2, Notion
     space ID.
-
-    TODO Do some smart constructing.
 *)
 module Config = struct
   type t = {
@@ -60,21 +58,14 @@ let request endpoint ~params =
     ~body:(Cohttp_lwt.Body.of_string body_string)
     ~headers
     (Uri.of_string (config.api ^ endpoint))
-  >>= fun (_, body) ->
-  body |> Cohttp_lwt.Body.to_string >|= fun body -> body
-
-let construct_task_ids task_id : Yojson.t =
-  `Assoc [ ("taskIds", `List [ `String task_id ]) ]
-
-(* let print_tasks tasks = *)
-(*   List.iter *)
-(*     (fun task -> *)
-(*       task |> member "id" |> to_string |> Printf.printf "Fetched task %s\n") *)
-(*     tasks *)
+  >>= fun (_, body) -> body |> Cohttp_lwt.Body.to_string
 
 let rec request_tasks task_id =
+  (*We need to avoid spamming the Notion API too quickly, hence the arbitary
+    sleep call.*)
   Unix.sleep 2;
-  let task_ids_param = construct_task_ids task_id in
+
+  let task_ids_param = `Assoc [ ("taskIds", `List [ `String task_id ]) ] in
   let tasks =
     Yojson.Basic.from_string
       (Lwt_main.run (request "/getTasks" ~params:task_ids_param))
@@ -90,14 +81,6 @@ let rec request_tasks task_id =
   let state = task |> member "state" |> to_string in
   match state with "success" -> task | _ -> request_tasks task_id
 
-(*Source: https://discuss.ocaml.org/t/how-do-i-download-a-file-with-cohttp/7105*)
-(* let download (uri : Uri.t) (dest : string) = *)
-(*   Client.get uri >>= fun (_, body) -> *)
-(*   (1* TODO: check response for status codes, follow redirects if applicable *1) *)
-(*   let stream = Cohttp_lwt.Body.to_stream body in *)
-(*   Lwt_io.with_file ~mode:Lwt_io.output dest (fun chan -> *)
-(*       Lwt_stream.iter_s (Lwt_io.write chan) stream) *)
-
 let () =
   let task_id =
     Yojson.Basic.from_string
@@ -110,7 +93,6 @@ let () =
     ret_task |> member "status" |> member "exportURL" |> to_string
   in
   Printf.printf "\nExport created, downloading: %s" export_url;
-  (* let _ = download (Uri.of_string export_url) config.export_filename in *)
   let _ =
     Unix.create_process "curl"
       [| "curl"; export_url; "-o"; config.export_filename |]
